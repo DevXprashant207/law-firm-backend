@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id       String @id @default(cuid())
+  email    String @unique
+  password String
+  
+  @@map("admins")
+}
+
+model Lawyer {
+  id       String @id @default(cuid())
+  name     String
+  title    String
+  bio      String
+  imageUrl String?
+  
+  // Many-to-many relationship with Services
+  services LawyerService[]
+  
+  @@map("lawyers")
+}
+
+model Service {
+  id          String @id @default(cuid())
+  name        String
+  slug        String @unique
+  description String
+  
+  // Many-to-many relationship with Lawyers
+  lawyers LawyerService[]
+  
+  @@map("services")
+}
+
+// Junction table for many-to-many relationship between Lawyer and Service
+model LawyerService {
+  id        String @id @default(cuid())
+  lawyer    Lawyer  @relation(fields: [lawyerId], references: [id], onDelete: Cascade)
+  lawyerId  String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId String
+  
+  @@unique([lawyerId, serviceId])
+  @@map("lawyer_services")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String
+  createdAt DateTime @default(now())
+  
+  @@map("posts")
+}
+
+model MediaCoverage {
+  id          String @id @default(cuid())
+  title       String
+  description String
+  link        String
+  
+  @@map("media_coverage")
+}
+
+model Enquiry {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+  
+  @@map("enquiries")
+}
