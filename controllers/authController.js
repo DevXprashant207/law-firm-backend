@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../server.js';
 
@@ -30,10 +29,8 @@ export const loginAdmin = async (req, res) => {
       });
     }
 
-    // Compare password with hashed password
-    const isValidPassword = await bcrypt.compare(password, admin.password);
-
-    if (!isValidPassword) {
+    // Compare password directly (plain text)
+    if (password !== admin.password) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials.'
