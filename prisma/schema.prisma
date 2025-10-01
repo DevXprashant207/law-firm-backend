@@ -75,3 +75,14 @@ model Enquiry {
 
   @@map("enquiries")
 }
+
+model News {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  author      String
+  imageUrl    String?
+  publishedAt DateTime @default(now())
+
+  @@map("news")
+}

@@ -10,6 +10,7 @@ import serviceRoutes from './routes/serviceRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import mediaRoutes from './routes/mediaRoutes.js';
 import enquiryRoutes from './routes/enquiryRoutes.js';
+import newsRoutes from './routes/newsRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -37,6 +38,7 @@ app.use('/api', serviceRoutes);
 app.use('/api', postRoutes);
 app.use('/api', mediaRoutes);
 app.use('/api', enquiryRoutes);
+app.use('/api', newsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
