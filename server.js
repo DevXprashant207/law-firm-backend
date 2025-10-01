@@ -11,6 +11,7 @@ import postRoutes from './routes/postRoutes.js';
 import mediaRoutes from './routes/mediaRoutes.js';
 import enquiryRoutes from './routes/enquiryRoutes.js';
 import newsRoutes from './routes/newsRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -27,9 +28,14 @@ export const prisma = new PrismaClient();
 //   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
 //   credentials: true
 // }));
+
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Serve upload folder statically
+import path from 'path';
+app.use('/upload', express.static(path.join(process.cwd(), 'upload')));
 
 // Routes
 app.use('/api/admin/auth', authRoutes);
@@ -39,6 +45,7 @@ app.use('/api', postRoutes);
 app.use('/api', mediaRoutes);
 app.use('/api', enquiryRoutes);
 app.use('/api', newsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

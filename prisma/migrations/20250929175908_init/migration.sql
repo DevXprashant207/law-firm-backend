@@ -3,7 +3,6 @@ CREATE TABLE "public"."admins" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
-
     CONSTRAINT "admins_pkey" PRIMARY KEY ("id")
 );
 
@@ -14,7 +13,6 @@ CREATE TABLE "public"."lawyers" (
     "title" TEXT NOT NULL,
     "bio" TEXT NOT NULL,
     "imageUrl" TEXT,
-
     CONSTRAINT "lawyers_pkey" PRIMARY KEY ("id")
 );
 
@@ -24,7 +22,6 @@ CREATE TABLE "public"."services" (
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-
     CONSTRAINT "services_pkey" PRIMARY KEY ("id")
 );
 
@@ -33,7 +30,6 @@ CREATE TABLE "public"."lawyer_services" (
     "id" TEXT NOT NULL,
     "lawyerId" TEXT NOT NULL,
     "serviceId" TEXT NOT NULL,
-
     CONSTRAINT "lawyer_services_pkey" PRIMARY KEY ("id")
 );
 
@@ -44,7 +40,6 @@ CREATE TABLE "public"."posts" (
     "slug" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "posts_pkey" PRIMARY KEY ("id")
 );
 
