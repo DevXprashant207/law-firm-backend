@@ -5,9 +5,9 @@ const prisma = new PrismaClient();
 // Create News (Admin only)
 export const createNews = async (req, res) => {
   try {
-    const { title, content, author, imageUrl } = req.body;
+    const { title, link, description, imageUrl } = req.body;
     const news = await prisma.news.create({
-      data: { title, content, author, imageUrl }
+      data: { title, link, description, imageUrl }
     });
     res.status(201).json(news);
   } catch (error) {
@@ -41,10 +41,10 @@ export const getNewsById = async (req, res) => {
 export const updateNews = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, author, imageUrl } = req.body;
+    const { title, link, description, imageUrl } = req.body;
     const news = await prisma.news.update({
       where: { id },
-      data: { title, content, author, imageUrl }
+      data: { title, link, description, imageUrl }
     });
     res.json(news);
   } catch (error) {
