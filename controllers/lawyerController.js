@@ -89,7 +89,13 @@ export const getLawyerById = async (req, res) => {
  */
 export const createLawyer = async (req, res) => {
   try {
-    const { name, title, bio, imageUrl, serviceIds } = req.body;
+    const { name, title, bio, serviceIds } = req.body;
+    let imageUrl = req.body.imageUrl;
+
+    // If file uploaded, set imageUrl
+    if (req.file) {
+      imageUrl = `/upload/${req.file.filename}`;
+    }
 
     // Validate required fields
     if (!name || !title || !bio) {
@@ -152,7 +158,11 @@ export const createLawyer = async (req, res) => {
 export const updateLawyer = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, title, bio, imageUrl, serviceIds } = req.body;
+    const { name, title, bio, serviceIds } = req.body;
+    let imageUrl = req.body.imageUrl;
+    if (req.file) {
+      imageUrl = `/upload/${req.file.filename}`;
+    }
 
     // Check if lawyer exists
     const existingLawyer = await prisma.lawyer.findUnique({
