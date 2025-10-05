@@ -76,10 +76,26 @@ model MediaCoverage {
 
 model Enquiry {
   id        String   @id @default(cuid())
-  name      String
+  firstName String
+  lastName  String
   email     String
+  phone     String
   message   String
+  lawId     String   // Reference to Service or Lawyer (adjust as needed)
+  imageUrl  String?  // Optional image property
   createdAt DateTime @default(now())
-  
+
   @@map("enquiries")
+}
+
+// New model for News
+model News {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  link        String
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+
+  @@map("news")
 }

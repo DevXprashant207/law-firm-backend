@@ -5,13 +5,13 @@ import { prisma } from '../server.js';
  */
 export const createEnquiry = async (req, res) => {
   try {
-    const { name, email, message } = req.body;
+    const { firstName, lastName, email, phone, message, lawId, imageUrl } = req.body;
 
     // Validate required fields
-    if (!name || !email || !message) {
+    if (!firstName || !lastName || !email || !phone || !message || !lawId) {
       return res.status(400).json({
         success: false,
-        message: 'Name, email, and message are required.'
+        message: 'First name, last name, email, phone, message, and lawId are required.'
       });
     }
 
@@ -27,9 +27,13 @@ export const createEnquiry = async (req, res) => {
     // Create enquiry
     const enquiry = await prisma.enquiry.create({
       data: {
-        name: name.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         email: email.toLowerCase().trim(),
-        message: message.trim()
+        phone: phone.trim(),
+        message: message.trim(),
+        lawId: lawId,
+        imageUrl: imageUrl || null
       }
     });
 
@@ -38,8 +42,13 @@ export const createEnquiry = async (req, res) => {
       message: 'Thank you for your enquiry. We will get back to you soon.',
       data: {
         id: enquiry.id,
-        name: enquiry.name,
+        firstName: enquiry.firstName,
+        lastName: enquiry.lastName,
         email: enquiry.email,
+        phone: enquiry.phone,
+        message: enquiry.message,
+        lawId: enquiry.lawId,
+        imageUrl: enquiry.imageUrl,
         createdAt: enquiry.createdAt
       }
     });
@@ -62,11 +71,11 @@ export const getAllEnquiries = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Validate sort parameters
-    const validSortFields = ['createdAt', 'name', 'email'];
+    const validSortFields = ['createdAt', 'firstName', 'email'];
     const validSortOrders = ['asc', 'desc'];
 
     const orderBy = {};
-    orderBy[validSortFields.includes(sortBy) ? sortBy : 'createdAt'] = 
+    orderBy[validSortFields.includes(sortBy) ? sortBy : 'createdAt'] =
       validSortOrders.includes(sortOrder) ? sortOrder : 'desc';
 
     const [enquiries, totalCount] = await Promise.all([

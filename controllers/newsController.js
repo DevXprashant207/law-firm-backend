@@ -18,12 +18,13 @@ export const createNews = async (req, res) => {
 // Get All News (Public)
 export const getAllNews = async (req, res) => {
   try {
-    const news = await prisma.news.findMany({ orderBy: { publishedAt: 'desc' } });
+    const news = await prisma.news.findMany();
     res.json(news);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Get News by ID (Public)
 export const getNewsById = async (req, res) => {
