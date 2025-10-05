@@ -1,6 +1,5 @@
 
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../server.js';
 
 // Create News (Admin only)
 export const createNews = async (req, res) => {
