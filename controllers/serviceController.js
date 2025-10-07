@@ -5,25 +5,35 @@ import { prisma } from '../server.js';
  */
 export const getAllServices = async (req, res) => {
   try {
+    // Fetch all services
     const services = await prisma.service.findMany({
-      include: {
-        lawyers: {
-          include: {
-            lawyer: true
-          }
-        }
-      },
       orderBy: {
         name: 'asc'
       }
     });
 
-    // Transform the response to include lawyers directly
-    const transformedServices = services.map(service => ({
-      ...service,
-      lawyers: service.lawyers.map(ls => ls.lawyer)
-    }));
+    // For each service, find lawyers whose bio matches the service name
+    const transformedServices = await Promise.all(
+      services.map(async (service) => {
+        const matchingLawyers = await prisma.lawyer.findMany({
+          where: {
+            bio: service.name
+          },
+          select: {
+            name: true,
+            title: true,
+            imageUrl: true,
+          }
+        });
 
+        return {
+          ...service,
+          lawyers: matchingLawyers
+        };
+      })
+    );
+
+    // Send response
     res.status(200).json({
       success: true,
       data: transformedServices,
@@ -38,6 +48,7 @@ export const getAllServices = async (req, res) => {
     });
   }
 };
+
 
 /**
  * Get service by slug with associated lawyers (Public)

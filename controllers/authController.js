@@ -49,13 +49,13 @@ export const loginAdmin = async (req, res) => {
         issuer: 'law-firm-api'
       }
     );
-
+    console.log(token);
     // Return success response with token
     res.status(200).json({
       success: true,
       message: 'Login successful.',
+      token,
       data: {
-        token,
         admin: {
           id: admin.id,
           email: admin.email
