@@ -7,42 +7,29 @@ export const getAllServices = async (req, res) => {
   try {
     const services = await prisma.service.findMany({
       orderBy: { name: 'asc' },
+      include: {
+        lawyers: {
+          include: {
+            lawyer: true
+          }
+        }
+      }
     });
 
-    const transformedServices = await Promise.all(
-      services.map(async (service) => {
-        const matchingLawyers = await prisma.lawyer.findMany({
-          where: {
-            bio: {
-              equals: service.name,
-              mode: 'insensitive',
-            },
-          },
-          select: {
-            name: true,
-            title: true,
-            imageUrl: true,
-          },
-        });
-
-        return {
-          ...service,
-          lawyers: matchingLawyers,
-        };
-      })
-    );
+    // Transform lawyers
+    const transformedServices = services.map(service => ({
+      ...service,
+      lawyers: service.lawyers.map(ls => ls.lawyer)
+    }));
 
     res.status(200).json({
       success: true,
       data: transformedServices,
-      count: transformedServices.length,
+      count: transformedServices.length
     });
   } catch (error) {
     console.error('Get all services error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch services.',
-    });
+    res.status(500).json({ success: false, message: 'Failed to fetch services.' });
   }
 };
 
@@ -55,44 +42,22 @@ export const getServiceBySlug = async (req, res) => {
 
     const service = await prisma.service.findUnique({
       where: { slug },
+      include: { lawyers: { include: { lawyer: true } } }
     });
 
     if (!service) {
-      return res.status(404).json({
-        success: false,
-        message: 'Service not found.',
-      });
+      return res.status(404).json({ success: false, message: 'Service not found.' });
     }
-
-    const matchingLawyers = await prisma.lawyer.findMany({
-      where: {
-        bio: {
-          equals: service.name,
-          mode: 'insensitive',
-        },
-      },
-      select: {
-        name: true,
-        title: true,
-        imageUrl: true,
-      },
-    });
 
     const transformedService = {
       ...service,
-      lawyers: matchingLawyers,
+      lawyers: service.lawyers.map(ls => ls.lawyer)
     };
 
-    res.status(200).json({
-      success: true,
-      data: transformedService,
-    });
+    res.status(200).json({ success: true, data: transformedService });
   } catch (error) {
     console.error('Get service by slug error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch service.',
-    });
+    res.status(500).json({ success: false, message: 'Failed to fetch service.' });
   }
 };
 
@@ -102,8 +67,8 @@ export const getServiceBySlug = async (req, res) => {
 export const createService = async (req, res) => {
   try {
     const { name, slug, description, lawyerIds } = req.body;
-
     let imageUrl = req.body.imageUrl;
+    console.log(res.body);
     if (req.file) {
       imageUrl = `/upload/${req.file.filename}`;
     }
@@ -117,18 +82,12 @@ export const createService = async (req, res) => {
     }
 
     // Check if slug already exists
-    const existingService = await prisma.service.findUnique({
-      where: { slug }
-    });
-
+    const existingService = await prisma.service.findUnique({ where: { slug } });
     if (existingService) {
-      return res.status(400).json({
-        success: false,
-        message: 'A service with this slug already exists.'
-      });
+      return res.status(400).json({ success: false, message: 'A service with this slug already exists.' });
     }
 
-    // Create service with optional lawyer associations
+    // Create service
     const service = await prisma.service.create({
       data: {
         name,
@@ -143,9 +102,7 @@ export const createService = async (req, res) => {
           }
         })
       },
-      include: {
-        lawyers: { include: { lawyer: true } }
-      }
+      include: { lawyers: { include: { lawyer: true } } }
     });
 
     const transformedService = {
@@ -153,47 +110,36 @@ export const createService = async (req, res) => {
       lawyers: service.lawyers.map(ls => ls.lawyer)
     };
 
-    res.status(201).json({
-      success: true,
-      message: 'Service created successfully.',
-      data: transformedService
-    });
-
+    res.status(201).json({ success: true, message: 'Service created successfully.', data: transformedService });
   } catch (error) {
     console.error('Create service error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create service.'
-    });
+    res.status(500).json({ success: false, message: 'Failed to create service.' });
   }
 };
 
 /**
- * Update service and handle lawyer associations (Admin only)
+ * Update service (Admin only)
  */
 export const updateService = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, slug, description, lawyerIds } = req.body;
-
     let imageUrl = req.body.imageUrl;
+
     if (req.file) {
       imageUrl = `/upload/${req.file.filename}`;
     }
 
-    // Check if service exists
     const existingService = await prisma.service.findUnique({ where: { id } });
     if (!existingService) {
       return res.status(404).json({ success: false, message: 'Service not found.' });
     }
 
-    // Check slug conflict
     if (slug && slug !== existingService.slug) {
       const slugConflict = await prisma.service.findUnique({ where: { slug } });
       if (slugConflict) return res.status(400).json({ success: false, message: 'Slug already exists.' });
     }
 
-    // Update service
     const service = await prisma.service.update({
       where: { id },
       data: {
@@ -205,9 +151,7 @@ export const updateService = async (req, res) => {
           lawyers: {
             deleteMany: {},
             ...(lawyerIds.length > 0 && {
-              create: lawyerIds.map(lawyerId => ({
-                lawyer: { connect: { id: lawyerId } }
-              }))
+              create: lawyerIds.map(lawyerId => ({ lawyer: { connect: { id: lawyerId } } }))
             })
           }
         })
@@ -215,17 +159,9 @@ export const updateService = async (req, res) => {
       include: { lawyers: { include: { lawyer: true } } }
     });
 
-    const transformedService = {
-      ...service,
-      lawyers: service.lawyers.map(ls => ls.lawyer)
-    };
+    const transformedService = { ...service, lawyers: service.lawyers.map(ls => ls.lawyer) };
 
-    res.status(200).json({
-      success: true,
-      message: 'Service updated successfully.',
-      data: transformedService
-    });
-
+    res.status(200).json({ success: true, message: 'Service updated successfully.', data: transformedService });
   } catch (error) {
     console.error('Update service error:', error);
     res.status(500).json({ success: false, message: 'Failed to update service.' });
@@ -238,12 +174,13 @@ export const updateService = async (req, res) => {
 export const deleteService = async (req, res) => {
   try {
     const { id } = req.params;
-
     const existingService = await prisma.service.findUnique({ where: { id } });
-    if (!existingService) return res.status(404).json({ success: false, message: 'Service not found.' });
+
+    if (!existingService) {
+      return res.status(404).json({ success: false, message: 'Service not found.' });
+    }
 
     await prisma.service.delete({ where: { id } });
-
     res.status(200).json({ success: true, message: 'Service deleted successfully.' });
   } catch (error) {
     console.error('Delete service error:', error);

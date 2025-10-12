@@ -12,9 +12,7 @@ export const getAllPosts = async (req, res) => {
       prisma.post.findMany({
         skip,
         take: parseInt(limit),
-        orderBy: {
-          createdAt: 'desc'
-        }
+        orderBy: { createdAt: 'desc' }
       }),
       prisma.post.count()
     ]);
@@ -45,10 +43,7 @@ export const getAllPosts = async (req, res) => {
 export const getPostBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
-
-    const post = await prisma.post.findUnique({
-      where: { slug }
-    });
+    const post = await prisma.post.findUnique({ where: { slug } });
 
     if (!post) {
       return res.status(404).json({
@@ -57,10 +52,7 @@ export const getPostBySlug = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      success: true,
-      data: post
-    });
+    res.status(200).json({ success: true, data: post });
 
   } catch (error) {
     console.error('Get post by slug error:', error);
@@ -77,6 +69,12 @@ export const getPostBySlug = async (req, res) => {
 export const createPost = async (req, res) => {
   try {
     const { title, slug, content } = req.body;
+    let imageUrl = req.body.imageUrl;
+
+    // ✅ If file uploaded, set imageUrl
+    if (req.file) {
+      imageUrl = `/upload/${req.file.filename}`;
+    }
 
     // Validate required fields
     if (!title || !slug || !content) {
@@ -87,10 +85,7 @@ export const createPost = async (req, res) => {
     }
 
     // Check if slug already exists
-    const existingPost = await prisma.post.findUnique({
-      where: { slug }
-    });
-
+    const existingPost = await prisma.post.findUnique({ where: { slug } });
     if (existingPost) {
       return res.status(400).json({
         success: false,
@@ -100,11 +95,7 @@ export const createPost = async (req, res) => {
 
     // Create post
     const post = await prisma.post.create({
-      data: {
-        title,
-        slug,
-        content
-      }
+      data: { title, slug, content, imageUrl }
     });
 
     res.status(201).json({
@@ -129,25 +120,21 @@ export const updatePost = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, slug, content } = req.body;
+    let imageUrl = req.body.imageUrl;
 
-    // Check if post exists
-    const existingPost = await prisma.post.findUnique({
-      where: { id }
-    });
-
-    if (!existingPost) {
-      return res.status(404).json({
-        success: false,
-        message: 'Post not found.'
-      });
+    if (req.file) {
+      imageUrl = `/upload/${req.file.filename}`;
     }
 
-    // If slug is being updated, check for conflicts
-    if (slug && slug !== existingPost.slug) {
-      const slugConflict = await prisma.post.findUnique({
-        where: { slug }
-      });
+    // Check if post exists
+    const existingPost = await prisma.post.findUnique({ where: { id } });
+    if (!existingPost) {
+      return res.status(404).json({ success: false, message: 'Post not found.' });
+    }
 
+    // Check for slug conflict
+    if (slug && slug !== existingPost.slug) {
+      const slugConflict = await prisma.post.findUnique({ where: { slug } });
       if (slugConflict) {
         return res.status(400).json({
           success: false,
@@ -162,7 +149,8 @@ export const updatePost = async (req, res) => {
       data: {
         ...(title && { title }),
         ...(slug && { slug }),
-        ...(content && { content })
+        ...(content && { content }),
+        ...(imageUrl && { imageUrl })
       }
     });
 
@@ -187,28 +175,14 @@ export const updatePost = async (req, res) => {
 export const deletePost = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Check if post exists
-    const existingPost = await prisma.post.findUnique({
-      where: { id }
-    });
+    const existingPost = await prisma.post.findUnique({ where: { id } });
 
     if (!existingPost) {
-      return res.status(404).json({
-        success: false,
-        message: 'Post not found.'
-      });
+      return res.status(404).json({ success: false, message: 'Post not found.' });
     }
 
-    // Delete post
-    await prisma.post.delete({
-      where: { id }
-    });
-
-    res.status(200).json({
-      success: true,
-      message: 'Post deleted successfully.'
-    });
+    await prisma.post.delete({ where: { id } });
+    res.status(200).json({ success: true, message: 'Post deleted successfully.' });
 
   } catch (error) {
     console.error('Delete post error:', error);
