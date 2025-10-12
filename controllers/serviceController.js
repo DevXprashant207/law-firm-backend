@@ -1,26 +1,38 @@
 import { prisma } from '../server.js';
 
+
 /**
  * Get all services (Public)
  */
 export const getAllServices = async (req, res) => {
   try {
+    // Fetch all services
     const services = await prisma.service.findMany({
-      orderBy: { name: 'asc' },
       include: {
-        lawyers: {
-          include: {
-            lawyer: true
-          }
-        }
-      }
+        lawyers: { include: { lawyer: true } }
+      },
+      orderBy: { name: 'asc' }
     });
 
-    // Transform lawyers
-    const transformedServices = services.map(service => ({
-      ...service,
-      lawyers: service.lawyers.map(ls => ls.lawyer)
-    }));
+    // Transform to include already connected lawyers
+    const transformedServices = await Promise.all(
+      services.map(async (service) => {
+        const connectedLawyers = service.lawyers.map(ls => ls.lawyer);
+
+        // Find additional lawyers whose bio matches service name (case-insensitive)
+        const matchingLawyers = await prisma.lawyer.findMany({
+          where: { bio: { equals: service.name, mode: 'insensitive' } }
+        });
+
+        // Combine without duplicates
+        const combinedLawyers = [
+          ...connectedLawyers,
+          ...matchingLawyers.filter(l => !connectedLawyers.some(cl => cl.id === l.id))
+        ];
+
+        return { ...service, lawyers: combinedLawyers };
+      })
+    );
 
     res.status(200).json({
       success: true,
@@ -45,14 +57,20 @@ export const getServiceBySlug = async (req, res) => {
       include: { lawyers: { include: { lawyer: true } } }
     });
 
-    if (!service) {
-      return res.status(404).json({ success: false, message: 'Service not found.' });
-    }
+    if (!service) return res.status(404).json({ success: false, message: 'Service not found.' });
 
-    const transformedService = {
-      ...service,
-      lawyers: service.lawyers.map(ls => ls.lawyer)
-    };
+    const connectedLawyers = service.lawyers.map(ls => ls.lawyer);
+
+    const matchingLawyers = await prisma.lawyer.findMany({
+      where: { bio: { equals: service.name, mode: 'insensitive' } }
+    });
+
+    const combinedLawyers = [
+      ...connectedLawyers,
+      ...matchingLawyers.filter(l => !connectedLawyers.some(cl => cl.id === l.id))
+    ];
+
+    const transformedService = { ...service, lawyers: combinedLawyers };
 
     res.status(200).json({ success: true, data: transformedService });
   } catch (error) {
