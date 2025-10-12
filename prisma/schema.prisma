@@ -36,12 +36,14 @@ model Service {
   name        String
   slug        String @unique
   description String
-  
+  imageUrl    String?  // NEW FIELD
+
   // Many-to-many relationship with Lawyers
   lawyers LawyerService[]
-  
+
   @@map("services")
 }
+
 
 // Junction table for many-to-many relationship between Lawyer and Service
 model LawyerService {
@@ -60,10 +62,12 @@ model Post {
   title     String
   slug      String   @unique
   content   String
+  imageUrl  String?  // NEW FIELD
   createdAt DateTime @default(now())
-  
+
   @@map("posts")
 }
+
 
 model MediaCoverage {
   id          String @id @default(cuid())
@@ -83,6 +87,7 @@ model Enquiry {
   message   String
   lawId     String   // Reference to Service or Lawyer (adjust as needed)
   imageUrl  String?  // Optional image property
+  status    String   @default("pending") // NEW FIELD: pending, complete, not_interested, irrelevant
   createdAt DateTime @default(now())
 
   @@map("enquiries")

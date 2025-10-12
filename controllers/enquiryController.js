@@ -24,7 +24,7 @@ export const createEnquiry = async (req, res) => {
       });
     }
 
-    // Create enquiry
+    // Create enquiry with default status
     const enquiry = await prisma.enquiry.create({
       data: {
         firstName: firstName.trim(),
@@ -33,24 +33,15 @@ export const createEnquiry = async (req, res) => {
         phone: phone.trim(),
         message: message.trim(),
         lawId: lawId,
-        imageUrl: imageUrl || null
+        imageUrl: imageUrl || null,
+        status: 'pending' // default status
       }
     });
 
     res.status(201).json({
       success: true,
       message: 'Thank you for your enquiry. We will get back to you soon.',
-      data: {
-        id: enquiry.id,
-        firstName: enquiry.firstName,
-        lastName: enquiry.lastName,
-        email: enquiry.email,
-        phone: enquiry.phone,
-        message: enquiry.message,
-        lawId: enquiry.lawId,
-        imageUrl: enquiry.imageUrl,
-        createdAt: enquiry.createdAt
-      }
+      data: enquiry
     });
 
   } catch (error) {
@@ -71,7 +62,7 @@ export const getAllEnquiries = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Validate sort parameters
-    const validSortFields = ['createdAt', 'firstName', 'email'];
+    const validSortFields = ['createdAt', 'firstName', 'email', 'status'];
     const validSortOrders = ['asc', 'desc'];
 
     const orderBy = {};
@@ -114,7 +105,6 @@ export const deleteEnquiry = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if enquiry exists
     const existingEnquiry = await prisma.enquiry.findUnique({
       where: { id }
     });
@@ -126,7 +116,6 @@ export const deleteEnquiry = async (req, res) => {
       });
     }
 
-    // Delete enquiry
     await prisma.enquiry.delete({
       where: { id }
     });
@@ -141,6 +130,41 @@ export const deleteEnquiry = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to delete enquiry.'
+    });
+  }
+};
+
+/**
+ * Update enquiry status (Admin only)
+ */
+export const updateEnquiryStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!["pending", "complete", "not_interested", "irrelevant"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status value.'
+      });
+    }
+
+    const updatedEnquiry = await prisma.enquiry.update({
+      where: { id },
+      data: { status }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Enquiry status updated successfully.',
+      data: updatedEnquiry
+    });
+
+  } catch (error) {
+    console.error('Update enquiry status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update enquiry status.'
     });
   }
 };
