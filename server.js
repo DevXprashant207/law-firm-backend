@@ -3,7 +3,12 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 
+import subAdminRoutes from "./routes/subAdminRoutes.js";
+
+
+
 // Import routes
+import siteSettingsRoutes from './routes/siteSettingsRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import lawyerRoutes from './routes/lawyerRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
@@ -37,6 +42,10 @@ app.use(express.urlencoded({ extended: true }));
 import path from 'path';
 app.use('/upload', express.static(path.join(process.cwd(), 'upload')));
 
+// Site settings routes
+
+app.use('/api/settings', siteSettingsRoutes);
+app.use("/api/subadmin", subAdminRoutes);
 // Routes
 app.use('/api/admin/auth', authRoutes);
 app.use('/api', lawyerRoutes);

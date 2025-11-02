@@ -9,14 +9,40 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+enum Role {
+  ADMIN
+  SUBADMIN
+}
 
 model Admin {
-  id       String @id @default(cuid())
-  email    String @unique
+  id       String   @id @default(cuid())
+  email    String   @unique
   password String
-  
+  role     Role     @default(ADMIN) // new
+  createdAt DateTime @default(now())
+
   @@map("admins")
 }
+
+model SubAdmin {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  name        String?
+  // permission flags (add more modules if needed)
+  canManageEnquiries Boolean @default(false)
+  canManageLawyers   Boolean @default(false)
+  canManageServices  Boolean @default(false)
+  canManagePosts     Boolean @default(false)
+  canManageNews      Boolean @default(false)
+  canManageSettings  Boolean @default(false)
+
+  createdBy   String   // admin id who created them
+  createdAt   DateTime @default(now())
+
+  @@map("subadmins")
+}
+
 
 model Lawyer {
   id       String @id @default(cuid())
@@ -103,4 +129,15 @@ model News {
   createdAt   DateTime @default(now())
 
   @@map("news")
+}
+model SiteSettings {
+  id        String   @id @default(cuid())
+  showTeam  Boolean  @default(true)
+  showNews  Boolean  @default(true)
+  showServices  Boolean  @default(true)
+  showBlog  Boolean  @default(true)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
 }
