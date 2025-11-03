@@ -143,3 +143,31 @@ export const updateSubAdminRoles = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+// ✅ Get Logged-in SubAdmin Info (for dashboard)
+export const getSubAdminProfile = async (req, res) => {
+  try {
+    const subAdmin = await prisma.subAdmin.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        canManageEnquiries: true,
+        canManageLawyers: true,
+        canManageServices: true,
+        canManagePosts: true,
+        canManageNews: true,
+        canManageSettings: true,
+      },
+    });
+
+    if (!subAdmin) {
+      return res.status(404).json({ error: "SubAdmin not found" });
+    }
+
+    res.json(subAdmin);
+  } catch (err) {
+    console.error("Error fetching SubAdmin profile:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
