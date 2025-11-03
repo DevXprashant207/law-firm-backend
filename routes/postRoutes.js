@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import { roleMiddleware } from '../middleware/roleMiddleware.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import {
   getAllPosts,
@@ -40,5 +41,10 @@ router.get('/posts/:slug', getPostBySlug);
 router.post('/admin/posts', authMiddleware, upload.single('image'), createPost);
 router.put('/admin/posts/:id', authMiddleware, upload.single('image'), updatePost);
 router.delete('/admin/posts/:id', authMiddleware, deletePost);
+
+// subamin routes
+router.post('/subadmin/posts', roleMiddleware, upload.single('image'), createPost);
+router.put('/subadmin/posts/:id', roleMiddleware, upload.single('image'), updatePost);
+router.delete('/subadmin/posts/:id', roleMiddleware, deletePost);
 
 export default router;

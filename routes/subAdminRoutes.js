@@ -4,17 +4,19 @@ import {
   loginSubAdmin,
   getAllSubAdmins,
   deleteSubAdmin,
+  updateSubAdminRoles,
 } from "../controllers/subAdminController.js";
-import { verifyToken } from "../middleware/roleMiddleware.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Superadmin routes
-router.post("/create", verifyToken, createSubAdmin);
-router.get("/", verifyToken, getAllSubAdmins);
-router.delete("/:id", verifyToken, deleteSubAdmin);
+// ✅ SuperAdmin-only routes
+router.post("/create",  authMiddleware, createSubAdmin);       // Create a new subadmin
+router.get("/",  authMiddleware, getAllSubAdmins);             // List all subadmins
+router.delete("/:id",  authMiddleware, deleteSubAdmin);        // Delete subadmin by ID
+router.put("/:id",  authMiddleware, updateSubAdminRoles); // Update subadmin roles
 
-// Subadmin login
+// ✅ SubAdmin login route (no token required)
 router.post("/login", loginSubAdmin);
 
 export default router;

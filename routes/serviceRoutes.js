@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import { authMiddleware } from '../middleware/authMiddleware.js';
+import { roleMiddleware } from '../middleware/roleMiddleware.js';
 import {
   getAllServices,
   getServiceBySlug,
@@ -43,5 +44,10 @@ router.get('/services/:slug', getServiceBySlug);
 router.post('/admin/services', authMiddleware, upload.single('image'), createService);
 router.put('/admin/services/:id', authMiddleware, upload.single('image'), updateService);
 router.delete('/admin/services/:id', authMiddleware, deleteService);
+
+// subamin routes
+router.post('/subadmin/services', roleMiddleware, upload.single('image'), createService);
+router.put('/subadmin/services/:id', roleMiddleware, upload.single('image'), updateService);
+router.delete('/subadmin/services/:id', roleMiddleware, deleteService);
 
 export default router;

@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import { authMiddleware } from '../middleware/authMiddleware.js';
+import { roleMiddleware } from '../middleware/roleMiddleware.js';
 import {
   getAllLawyers,
   getLawyerById,
@@ -43,5 +44,10 @@ router.get('/lawyers/:id', getLawyerById);
 router.post('/admin/lawyers', authMiddleware, upload.single('image'), createLawyer);
 router.put('/admin/lawyers/:id', authMiddleware, upload.single('image'), updateLawyer);
 router.delete('/admin/lawyers/:id', authMiddleware, deleteLawyer);
+
+// subamin routes
+router.post('/subadmin/lawyers', roleMiddleware, upload.single('image'), createLawyer);
+router.put('/subadmin/lawyers/:id', roleMiddleware, upload.single('image'), updateLawyer);
+router.delete('/subadmin/lawyers/:id', roleMiddleware, deleteLawyer);
 
 export default router;
